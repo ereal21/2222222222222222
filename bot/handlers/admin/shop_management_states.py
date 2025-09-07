@@ -766,12 +766,13 @@ async def main_category_discount_decision(call: CallbackQuery):
     allow = call.data.endswith('_yes')
     TgConfig.STATE[f'{user_id}_new_main_category_discount'] = allow
     TgConfig.STATE[user_id] = 'add_main_category_referral'
-    message_id = TgConfig.STATE.get(f'{user_id}_message_id')
-    await bot.edit_message_text(chat_id=call.message.chat.id,
-                                message_id=message_id,
-                                text='Award referral rewards in this main category?',
-                                reply_markup=question_buttons('maincat_referral', 'categories_management'))
-
+    await bot.edit_message_text(
+        chat_id=call.message.chat.id,
+        message_id=call.message.message_id,
+        text='Award referral rewards in this main category?',
+        reply_markup=question_buttons('maincat_referral', 'categories_management'),
+    )
+    await call.answer()
 
 async def main_category_referral_decision(call: CallbackQuery):
     bot, user_id = await get_bot_user_ids(call)
@@ -780,21 +781,26 @@ async def main_category_referral_decision(call: CallbackQuery):
     allow_ref = call.data.endswith('_yes')
     name = TgConfig.STATE.pop(f'{user_id}_new_main_category', None)
     allow_discounts = TgConfig.STATE.pop(f'{user_id}_new_main_category_discount', True)
-
-    name = TgConfig.STATE.pop(f'{user_id}_new_main_category', None)
-    message_id = TgConfig.STATE.get(f'{user_id}_message_id')
     TgConfig.STATE[user_id] = None
     if not name:
+        await call.answer()
         return
-    create_category(name, allow_discounts=allow_discounts, allow_referral_rewards=allow_ref)
-
-    create_category(name, allow_discounts=allow)
-    await bot.edit_message_text(chat_id=call.message.chat.id,
-                                message_id=message_id,
-                                text='✅ Main category created',
-                                reply_markup=back('categories_management'))
+    create_category(
+        name,
+        allow_discounts=allow_discounts,
+        allow_referral_rewards=allow_ref,
+    )
+    await bot.edit_message_text(
+        chat_id=call.message.chat.id,
+        message_id=call.message.message_id,
+        text='✅ Main category created',
+        reply_markup=back('categories_management'),
+    )
     admin_info = await bot.get_chat(user_id)
-    logger.info(f"User {user_id} ({admin_info.first_name}) created new main category \"{name}\"")
+    logger.info(
+        f'User {user_id} ({admin_info.first_name}) created new main category "{name}"',
+    )
+    await call.answer()
 
 
 async def process_category_name(message: Message):
