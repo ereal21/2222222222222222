@@ -781,6 +781,9 @@ async def main_category_referral_decision(call: CallbackQuery):
     allow_ref = call.data.endswith('_yes')
     name = TgConfig.STATE.pop(f'{user_id}_new_main_category', None)
     allow_discounts = TgConfig.STATE.pop(f'{user_id}_new_main_category_discount', True)
+
+
+    message_id = TgConfig.STATE.get(f'{user_id}_message_id')
     TgConfig.STATE[user_id] = None
     if not name:
         await call.answer()
@@ -793,6 +796,7 @@ async def main_category_referral_decision(call: CallbackQuery):
     await bot.edit_message_text(
         chat_id=call.message.chat.id,
         message_id=call.message.message_id,
+
         text='✅ Main category created',
         reply_markup=back('categories_management'),
     )
@@ -801,6 +805,10 @@ async def main_category_referral_decision(call: CallbackQuery):
         f'User {user_id} ({admin_info.first_name}) created new main category "{name}"',
     )
     await call.answer()
+
+
+        f"User {user_id} ({admin_info.first_name}) created new main category \"{name}\""
+    )
 
 
 async def process_category_name(message: Message):
